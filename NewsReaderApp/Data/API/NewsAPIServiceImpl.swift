@@ -22,13 +22,13 @@ final class NewsAPIServiceImpl: NewsAPIService {
         category: String,
         completion: @escaping (Result<[ArticleDTO], any Error>) -> Void
     ) {
-        guard var components = URLComponents(string: "\(baseURL)/top-headlines") else {
-            let error = NSError(
-                domain: "",
-                code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "Invalid base URL"]
-            )
+        
+        func finishWithError(_ error: Error) {
             DispatchQueue.main.async{completion(.failure(error))}
+        }
+        
+        guard var components = URLComponents(string: "\(baseURL)/top-headlines") else {
+            finishWithError(NewsAPIError.invalidBaseURL)
             return
         }
         
@@ -39,16 +39,42 @@ final class NewsAPIServiceImpl: NewsAPIService {
         ]
         
         guard let url = components.url else {
-            let error = NSError(
-                domain: "",
-                code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "Failed to build URL"]
-            )
-            DispatchQueue.main.async{completion(.failure(error))}
+            finishWithError(NewsAPIError.invalidRequestURL)
             return
         }
         
-        print("Fetching URL: \(url.absoluteString)")
+        let task = session.dataTask(with: url) { data, response, error in
+            if let error = error {
+                finishWithError(NewsAPIError.network(error))
+                return
+            }
+            
+            if let code = (response as? HTTPURLResponse)?.statusCode,
+               !(200...299).contains(code) {
+                finishWithError(NewsAPIError.httpStatus(code: code))
+                return
+            }
+            
+            guard let data = data else {
+                finishWithError(NewsAPIError.noData)
+                return
+            }
+            
+            do {
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .iso8601
+                let apiResponse = try decoder.decode(NewsAPIResponse.self, from: data)
+                DispatchQueue.main.async {
+                    completion(.success(apiResponse.articles))
+                }
+                
+            } catch {
+                finishWithError(error)
+            }
+        }
+        
+        task.resume()
+        
     }
-
+    
 }
