@@ -11,6 +11,7 @@ final class NewsListViewController: UIViewController {
     
     private let categories = NewsCategory.allCases
     private var selectedIndex = 0
+    private var articles: [News] = []
     
     private let viewModel: NewsListViewModel
     
@@ -35,7 +36,7 @@ final class NewsListViewController: UIViewController {
         cv.translatesAutoresizingMaskIntoConstraints = false
         return cv
     }()
-
+    
     private lazy var collectionView: UICollectionView = {
         let layout = createListLayout()
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -48,7 +49,7 @@ final class NewsListViewController: UIViewController {
         cv.translatesAutoresizingMaskIntoConstraints = false
         return cv
     }()
-
+    
     
     init(viewModel: NewsListViewModel) {
         self.viewModel = viewModel
@@ -67,12 +68,12 @@ final class NewsListViewController: UIViewController {
         view.addSubview(collectionView)
         setupConstraints()
     }
-
-
+    
+    
 }
 
 private extension NewsListViewController {
-   func createCategoryLayout() -> UICollectionViewCompositionalLayout {
+    func createCategoryLayout() -> UICollectionViewCompositionalLayout {
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .estimated(80),
             heightDimension: .absolute(40)
@@ -85,12 +86,12 @@ private extension NewsListViewController {
             subitems: [item]
         )
         group.interItemSpacing = .fixed(8)
-       
+        
         let section = NSCollectionLayoutSection(group: group)
         section.contentInsets = .init(top: 0, leading: 16, bottom: 0, trailing: 16)
         section.interGroupSpacing = 8
         section.orthogonalScrollingBehavior = .continuous
-       
+        
         return UICollectionViewCompositionalLayout(section: section)
     }
     
@@ -118,7 +119,7 @@ private extension NewsListViewController {
             titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 40),
             titleLabel.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
             titleLabel.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
-           
+            
             categoryCollection.topAnchor.constraint(equalTo: titleLabel.safeAreaLayoutGuide.topAnchor, constant: 40),
             categoryCollection.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
             categoryCollection.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
@@ -138,23 +139,33 @@ extension NewsListViewController: UICollectionViewDataSource, UICollectionViewDe
         _ collectionView: UICollectionView,
         numberOfItemsInSection section: Int
     ) -> Int {
-        categories.count
+        if collectionView == categoryCollection {
+            return categories.count
+        } else {
+            return articles.count
+        }
     }
     
     func collectionView(
         _ collectionView: UICollectionView,
         cellForItemAt indexPath: IndexPath
     ) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: CategoryCell.reuseIdentifier,
-            for: indexPath
-        ) as? CategoryCell else { return UICollectionViewCell()}
-        let text = categories[indexPath.item].displayName
-        cell.configure(text: text, isSelected: indexPath.item == selectedIndex)
-        
-        return cell
+        if collectionView == categoryCollection {
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: CategoryCell.reuseIdentifier,
+                for: indexPath
+            ) as? CategoryCell else { return UICollectionViewCell()}
+            let text = categories[indexPath.item].displayName
+            cell.configure(text: text, isSelected: indexPath.item == selectedIndex)
+            return cell
+        } else {
+            let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: NewsCell.reuseIdentifier,
+                for: indexPath
+            ) as! NewsCell
+            cell.configure(with: articles[indexPath.item])
+            return cell
+        }
     }
-    
-    
 }
 
