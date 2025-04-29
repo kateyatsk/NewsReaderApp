@@ -163,7 +163,7 @@ extension NewsListViewController: UICollectionViewDataSource, UICollectionViewDe
                 withReuseIdentifier: NewsCell.reuseIdentifier,
                 for: indexPath
             ) as! NewsCell
-            cell.configure(with: articles[indexPath.item])
+            cell.configure(with: articles[indexPath.item], onDelete: {} )
             return cell
         }
     }

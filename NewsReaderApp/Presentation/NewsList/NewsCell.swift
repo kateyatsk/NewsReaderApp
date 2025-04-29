@@ -10,6 +10,8 @@ import UIKit
 final class NewsCell: UICollectionViewCell {
     static let reuseIdentifier = "NewsCell"
     
+    var onDelete: (() -> Void)?
+    
     private let imageView: UIImageView = {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFill
@@ -19,7 +21,6 @@ final class NewsCell: UICollectionViewCell {
         return iv
     }()
     
-    
     private let newsTitleLabel: UILabel = {
         let lbl = UILabel()
         lbl.font = .systemFont(ofSize: 14, weight: .semibold)
@@ -27,7 +28,6 @@ final class NewsCell: UICollectionViewCell {
         lbl.translatesAutoresizingMaskIntoConstraints = false
         return lbl
     }()
-    
     
     private let descriptionLabel: UILabel = {
         let lbl = UILabel()
@@ -38,15 +38,33 @@ final class NewsCell: UICollectionViewCell {
         return lbl
     }()
     
+    private let deleteButton: UIButton = {
+        let btn = UIButton(type: .system)
+        btn.setImage(UIImage(systemName: "trash.circle.fill"), for: .normal)
+        btn.tintColor = .systemRed
+        btn.translatesAutoresizingMaskIntoConstraints = false
+        return btn
+    }()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.backgroundColor = .systemBackground
         contentView.layer.cornerRadius = 8
         
-        contentView.addSubview(imageView)
-        contentView.addSubview(newsTitleLabel)
-        contentView.addSubview(descriptionLabel)
+        contentView.addSubviews(
+            imageView,
+            newsTitleLabel,
+            descriptionLabel,
+            deleteButton
+        )
+
+        deleteButton.addTarget(
+            self,
+            action: #selector(didTapDelete),
+            for: .touchUpInside
+        )
         setupConstraints()
+        
     }
     
     required init?(coder: NSCoder) {
@@ -56,6 +74,12 @@ final class NewsCell: UICollectionViewCell {
     
     func setupConstraints() {
         NSLayoutConstraint.activate([
+            
+            deleteButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            deleteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
+            deleteButton.widthAnchor.constraint(equalToConstant: 24),
+            deleteButton.heightAnchor.constraint(equalTo: deleteButton.widthAnchor),
+            
             imageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
             imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
@@ -72,9 +96,10 @@ final class NewsCell: UICollectionViewCell {
         ])
     }
     
-    func configure(with news: News) {
+    func configure(with news: News, onDelete: @escaping () -> Void) {
         newsTitleLabel.text = news.title
         descriptionLabel.text = news.description
+        self.onDelete = onDelete
         
         if let urlString = news.urlToImage, let url = URL(string: urlString) {
             URLSession.shared.dataTask(with: url) { data, _, _ in
@@ -86,7 +111,18 @@ final class NewsCell: UICollectionViewCell {
         } else {
             imageView.image = nil
         }
-            
+        
     }
     
+    @objc private func didTapDelete() {
+            onDelete?()
+        }
+    
+}
+
+
+extension UIView {
+    func addSubviews(_ subviews: UIView...) {
+        subviews.forEach({addSubview($0)})
+    }
 }
