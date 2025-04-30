@@ -247,12 +247,13 @@ extension NewsListViewController: UICollectionViewDataSource, UICollectionViewDe
                 viewModel.load(category: category)
             } else {
                 let selectedNews = articles[indexPath.item]
-                let detailVC = NewsDetailsViewController(
+                let detailVM = NewsDetailsViewModel(
                     news: selectedNews,
                     getBookmarksUseCase: getBookmarksUseCase,
-                    removeNewFromBookmarksUseCase: removeBookmarkUseCase,
-                    saveNewsToBookmarksUseCase: saveBookmarkUseCase
+                    removeUseCase: removeBookmarkUseCase,
+                    saveUseCase: saveBookmarkUseCase
                 )
+                let detailVC = NewsDetailsViewController(viewModel: detailVM)
                 navigationController?.pushViewController(detailVC, animated: true)
             }
             

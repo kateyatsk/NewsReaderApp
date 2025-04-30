@@ -8,10 +8,7 @@ import Foundation
 import UIKit
 
 final class NewsDetailsViewController: UIViewController {
-    private let news: News
-    private let getBookmarksUseCase: GetBookmarksUseCase
-    private let removeUseCase: RemoveNewsFromBookmarksUseCase
-    private let saveUseCase: SaveNewsToBookmarksUseCase
+    private let viewModel: NewsDetailsViewModel
     
     private var isBookmarked = false {
         didSet {
@@ -19,7 +16,7 @@ final class NewsDetailsViewController: UIViewController {
             bookmarkButton.setImage(UIImage(systemName: imageName), for: .normal)
         }
     }
-    
+   
     private let scrollView = UIScrollView()
     private let contentStack = UIStackView()
     private let titleLabel = UILabel()
@@ -31,16 +28,8 @@ final class NewsDetailsViewController: UIViewController {
     private let titleRowStackView = UIStackView()
     
     
-    init(
-        news: News,
-        getBookmarksUseCase: GetBookmarksUseCase,
-        removeNewFromBookmarksUseCase: RemoveNewsFromBookmarksUseCase,
-        saveNewsToBookmarksUseCase: SaveNewsToBookmarksUseCase
-    ) {
-        self.news = news
-        self.getBookmarksUseCase = getBookmarksUseCase
-        self.removeUseCase = removeNewFromBookmarksUseCase
-        self.saveUseCase = saveNewsToBookmarksUseCase
+    init(viewModel: NewsDetailsViewModel) {
+        self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -52,15 +41,12 @@ final class NewsDetailsViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .primaryBackground
         setupUI()
-        configure(with: news)
+        configure()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
-        isBookmarked = getBookmarksUseCase
-            .execute()
-            .contains(where: { $0.url == news.url })
+        isBookmarked = viewModel.isBookmarked
     }
     
     private func setupUI() {
@@ -119,41 +105,30 @@ final class NewsDetailsViewController: UIViewController {
         
     }
     
-    private func configure(with news: News) {
-        titleLabel.text = news.title
-        authorLabel.text = "Author: \(news.author ?? "Unknown")"
-        dateLabel.text = "Published: \(formattedDate(news.publishedAt))"
-        contentLabel.text = news.content ?? news.description
+    private func configure() {
+        titleLabel.text = viewModel.title
+        authorLabel.text = viewModel.author
+        dateLabel.text = viewModel.date
+        contentLabel.text = viewModel.content
         
-        if let urlString = news.urlToImage, let url = URL(string: urlString) {
+        self.imageView.image = UIImage(named: "placeholder")
+        if let url = viewModel.imageURL {
             URLSession.shared.dataTask(with: url) { data, _, _ in
-                guard let data = data else { return }
                 DispatchQueue.main.async {
-                    self.imageView.image = UIImage(data: data)
+                    if let data = data, let _ = UIImage(data: data) {
+                        self.imageView.image = UIImage(data: data)
+                    } else {
+                        self.imageView.image = UIImage(named: "placeholder")
+                    }
                 }
             }.resume()
         }
         
-        isBookmarked = getBookmarksUseCase
-            .execute()
-            .contains(where: { $0.url == news.url })
         
     }
     
-    private func formattedDate(_ date: Date?) -> String {
-        guard let date else { return "N/A" }
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter.string(from: date)
-    }
-    
     @objc private func toggleBookmark() {
-        if isBookmarked {
-            removeUseCase.execute(news)
-        } else {
-            saveUseCase.execute(news)
-        }
-        DatabaseManager.shared.saveContext()
+        viewModel.toggleBookmark()
         isBookmarked.toggle()
     }
     
