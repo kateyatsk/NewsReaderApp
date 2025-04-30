@@ -116,7 +116,7 @@ final class NewsCell: UICollectionViewCell {
         self.onBookmarkTap = onBookmarkTap
         newsTitleLabel.text = news.title
         descriptionLabel.text = news.description
-        sourceLabel.text = news.source ?? "Unknown Source"
+        sourceLabel.text = news.source
         
         let name = isBookmarked ? "bookmark.fill" : "bookmark"
         bookmarkButton.setImage(UIImage(systemName: name), for: .normal)

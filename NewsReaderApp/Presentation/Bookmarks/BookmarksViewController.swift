@@ -45,7 +45,6 @@ final class BookmarksViewController: UIViewController {
     
     override func viewDidLoad() {
         view.backgroundColor = .primaryBackground
-        
         view.addSubview(collectionView)
         setupConstraints()
         viewModel.loadBookmarks()
@@ -137,5 +136,18 @@ extension BookmarksViewController: UICollectionViewDataSource, UICollectionViewD
         }
         return cell
     }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let selectedNews = articles[indexPath.item]
+        let detailVM = NewsDetailsViewModel(
+            news: selectedNews,
+            getBookmarksUseCase: viewModel.getBookmarksUseCase,
+            removeUseCase: viewModel.removeUseCase, saveUseCase: viewModel.saveUseCase
+        )
+        let detailVC = NewsDetailsViewController(viewModel: detailVM)
+        navigationController?.pushViewController(detailVC, animated: true)
+    }
+        
 }
+
 
