@@ -22,6 +22,7 @@ final class BookmarksViewController: UIViewController {
             NewsCell.self,
             forCellWithReuseIdentifier: NewsCell.reuseIdentifier
         )
+        cv.backgroundColor = .primaryBackground
         cv.translatesAutoresizingMaskIntoConstraints = false
         return cv
     }()
@@ -41,15 +42,22 @@ final class BookmarksViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    
     override func viewDidLoad() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .primaryBackground
         
         view.addSubview(collectionView)
         setupConstraints()
-        bindViewModel()
         viewModel.loadBookmarks()
+        bindViewModel()
+    
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewModel.loadBookmarks()
+    }
+
 }
 
 private extension BookmarksViewController {
@@ -69,7 +77,7 @@ private extension BookmarksViewController {
         group.interItemSpacing = .fixed(12)
         
         let section = NSCollectionLayoutSection(group: group)
-        
+        section.interGroupSpacing = 15
         return UICollectionViewCompositionalLayout(section: section)
     }
     
@@ -77,8 +85,8 @@ private extension BookmarksViewController {
         NSLayoutConstraint.activate([
             
             collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
             
         ])
@@ -123,8 +131,9 @@ extension BookmarksViewController: UICollectionViewDataSource, UICollectionViewD
         ) as! NewsCell
         
         let news = articles[indexPath.item]
-        cell.configure(with: news) { [weak self] in
-            self?.viewModel.removeBookmark(news)
+        cell.configure(with: news, isBookmarked: true) { [weak self] in
+            guard let self = self else { return }
+            self.viewModel.removeBookmark(news)
         }
         return cell
     }

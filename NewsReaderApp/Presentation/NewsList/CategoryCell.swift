@@ -20,6 +20,8 @@ final class CategoryCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.addSubview(label)
+        contentView.layer.cornerRadius = 12
+        contentView.layer.masksToBounds = true
         setupConstraints()
     }
     
@@ -39,10 +41,10 @@ final class CategoryCell: UICollectionViewCell {
     func configure(text: String, isSelected: Bool) {
         label.text = text
         if isSelected {
-            label.backgroundColor = .primaryText
+            contentView.backgroundColor = .primaryText
             label.textColor = .secondaryBackground
         } else {
-            label.backgroundColor = .secondaryBackground
+            contentView.backgroundColor = .secondaryBackground
             label.textColor = .primaryText
         }
     }
