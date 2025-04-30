@@ -9,7 +9,7 @@ import Foundation
 
 protocol NewsAPIService {
     func fetchTopHeadlines(
-            category: String,
-            completion: @escaping (Result<[ArticleDTO], Error>) -> Void
-        )
+        category: String,
+        completion: @escaping (Result<[ArticleDTO], Error>) -> Void
+    )
 }
