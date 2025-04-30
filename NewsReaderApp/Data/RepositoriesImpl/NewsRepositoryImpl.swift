@@ -71,7 +71,7 @@ final class NewsRepositoryImpl: NewsRepository {
         let ctx = coreData.context
         
         let req: NSFetchRequest<SavedNews> = SavedNews.fetchRequest()
-        req.predicate = NSPredicate(format: "url == @", news.url)
+        req.predicate = NSPredicate(format: "url == %@", news.url)
         
         if let items = try? ctx.fetch(req) {
             
