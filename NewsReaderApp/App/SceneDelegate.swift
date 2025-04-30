@@ -29,18 +29,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let removeBookmarkUC = RemoveNewsFromBookmarksUseCaseImpl(repository: repository)
         let getBookmarksUC   = GetBookmarksUseCaseImpl(repository: repository)
         
-        let newsListVM = NewsListViewModel(fetchUseCase: fetchHeadlinesUC)
-        let newsListVC = NewsListViewController(
-            viewModel: newsListVM,
+        let newsListVM = NewsListViewModel(
+            fetchUseCase: fetchHeadlinesUC,
             getBookmarksUseCase: getBookmarksUC,
             removeBookmarkUseCase: removeBookmarkUC,
-            saveBookmarkUseCase: saveBookmarkUC
+            saveBookmarkUseCase: saveBookmarkUC,
         )
+        let newsListVC = NewsListViewController(viewModel: newsListVM)
         let newsNav = UINavigationController(rootViewController: newsListVC)
         
         let bookmarksVM = BookmarksViewModel(
             getBookmarksUseCase: getBookmarksUC,
-            removeUseCase: removeBookmarkUC
+            removeUseCase: removeBookmarkUC,
+            saveUseCase: saveBookmarkUC
         )
         let bookmarksVC = BookmarksViewController(viewModel: bookmarksVM)
         let bookmarksNav = UINavigationController(rootViewController: bookmarksVC)

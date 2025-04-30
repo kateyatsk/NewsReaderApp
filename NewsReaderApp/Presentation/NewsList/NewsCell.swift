@@ -21,6 +21,14 @@ final class NewsCell: UICollectionViewCell {
         return iv
     }()
     
+    private let sourceLabel: UILabel = {
+        let lbl = UILabel()
+        lbl.font = .systemFont(ofSize: 12)
+        lbl.textColor = .tertiaryLabel
+        lbl.translatesAutoresizingMaskIntoConstraints = false
+        return lbl
+    }()
+    
     private let newsTitleLabel: UILabel = {
         let lbl = UILabel()
         lbl.font = .systemFont(ofSize: 14, weight: .semibold)
@@ -54,9 +62,10 @@ final class NewsCell: UICollectionViewCell {
             imageView,
             newsTitleLabel,
             descriptionLabel,
-            bookmarkButton
+            bookmarkButton,
+            sourceLabel
         )
-
+        
         bookmarkButton.addTarget(
             self,
             action: #selector(didTapBookmark),
@@ -88,7 +97,11 @@ final class NewsCell: UICollectionViewCell {
             newsTitleLabel.leadingAnchor.constraint(equalTo: imageView.leadingAnchor),
             newsTitleLabel.trailingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: -30),
             
-            descriptionLabel.topAnchor.constraint(equalTo: newsTitleLabel.bottomAnchor, constant: 4),
+            sourceLabel.topAnchor.constraint(equalTo: newsTitleLabel.bottomAnchor, constant: 4),
+            sourceLabel.leadingAnchor.constraint(equalTo: newsTitleLabel.leadingAnchor),
+            sourceLabel.trailingAnchor.constraint(equalTo: newsTitleLabel.trailingAnchor),
+
+            descriptionLabel.topAnchor.constraint(equalTo: sourceLabel.bottomAnchor, constant: 4),
             descriptionLabel.leadingAnchor.constraint(equalTo: newsTitleLabel.leadingAnchor),
             descriptionLabel.trailingAnchor.constraint(equalTo: newsTitleLabel.trailingAnchor),
             descriptionLabel.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -20)
@@ -103,25 +116,25 @@ final class NewsCell: UICollectionViewCell {
         self.onBookmarkTap = onBookmarkTap
         newsTitleLabel.text = news.title
         descriptionLabel.text = news.description
+        sourceLabel.text = news.source
         
         let name = isBookmarked ? "bookmark.fill" : "bookmark"
         bookmarkButton.setImage(UIImage(systemName: name), for: .normal)
         
-        imageView.image = nil
-        
+        imageView.image = UIImage(named: "placeholder")
         if let urlString = news.urlToImage, let url = URL(string: urlString) {
             URLSession.shared.dataTask(with: url) { data, _, _ in
-                guard let data = data else { return }
                 DispatchQueue.main.async {
-                    self.imageView.image = UIImage(data: data)
+                    if let data = data, let _ = UIImage(data: data) {
+                        self.imageView.image = UIImage(data: data)
+                    } else {
+                        self.imageView.image = UIImage(named: "placeholder")
+                    }
                 }
             }.resume()
-        } else {
-            imageView.image = nil
+            
         }
-        
     }
-    
     @objc private func didTapBookmark() {
         onBookmarkTap?()
     }

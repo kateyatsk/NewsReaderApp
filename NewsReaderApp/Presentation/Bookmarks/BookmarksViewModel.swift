@@ -8,8 +8,9 @@
 import Foundation
 
 final class BookmarksViewModel {
-    private let getBookmarksUseCase: GetBookmarksUseCase
-    private let removeUseCase: RemoveNewsFromBookmarksUseCase
+    let getBookmarksUseCase: GetBookmarksUseCase
+    let removeUseCase: RemoveNewsFromBookmarksUseCase
+    let saveUseCase: SaveNewsToBookmarksUseCase
     
     var bookmarksDidChange: (([News]) -> Void)?
     var errorDidOccur: ((String) -> Void)?
@@ -22,10 +23,12 @@ final class BookmarksViewModel {
     
     init(
         getBookmarksUseCase: GetBookmarksUseCase,
-        removeUseCase: RemoveNewsFromBookmarksUseCase
+        removeUseCase: RemoveNewsFromBookmarksUseCase,
+        saveUseCase: SaveNewsToBookmarksUseCase
     ) {
         self.getBookmarksUseCase = getBookmarksUseCase
         self.removeUseCase = removeUseCase
+        self.saveUseCase = saveUseCase
     }
     
     func loadBookmarks() {
