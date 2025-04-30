@@ -15,7 +15,7 @@ final class NewsListViewController: UIViewController {
     private var bookmarks: [News] = []
     
     private let getBookmarksUseCase: GetBookmarksUseCase
-    private let removeBookmarkUseCase:RemoveNewsFromBookmarksUseCase
+    private let removeBookmarkUseCase: RemoveNewsFromBookmarksUseCase
     private let saveBookmarkUseCase: SaveNewsToBookmarksUseCase
     
     private let viewModel: NewsListViewModel
@@ -240,12 +240,22 @@ extension NewsListViewController: UICollectionViewDataSource, UICollectionViewDe
         }
         
         func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-            guard collectionView == categoryCollection else { return }
-            selectedIndex = indexPath.item
-            categoryCollection.reloadData()
+            if collectionView == categoryCollection {
+                selectedIndex = indexPath.item
+                categoryCollection.reloadData()
+                let category = categories[selectedIndex].rawValue
+                viewModel.load(category: category)
+            } else {
+                let selectedNews = articles[indexPath.item]
+                let detailVC = NewsDetailsViewController(
+                    news: selectedNews,
+                    getBookmarksUseCase: getBookmarksUseCase,
+                    removeNewFromBookmarksUseCase: removeBookmarkUseCase,
+                    saveNewsToBookmarksUseCase: saveBookmarkUseCase
+                )
+                navigationController?.pushViewController(detailVC, animated: true)
+            }
             
-            let category = categories[selectedIndex].rawValue
-            viewModel.load(category: category)
         }
         
     }
