@@ -10,12 +10,12 @@ import UIKit
 final class NewsCell: UICollectionViewCell {
     static let reuseIdentifier = "NewsCell"
     
-    var onDelete: (() -> Void)?
+    var onBookmarkTap: (() -> Void)?
     
     private let imageView: UIImageView = {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFill
-        iv.layer.cornerRadius = 8
+        iv.layer.cornerRadius = 25
         iv.clipsToBounds = true
         iv.translatesAutoresizingMaskIntoConstraints = false
         return iv
@@ -38,29 +38,28 @@ final class NewsCell: UICollectionViewCell {
         return lbl
     }()
     
-    private let deleteButton: UIButton = {
+    private let bookmarkButton: UIButton = {
         let btn = UIButton(type: .system)
-        btn.setImage(UIImage(systemName: "trash.circle.fill"), for: .normal)
-        btn.tintColor = .systemRed
+        btn.tintColor = .primaryText
         btn.translatesAutoresizingMaskIntoConstraints = false
         return btn
     }()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        contentView.backgroundColor = .systemBackground
-        contentView.layer.cornerRadius = 8
+        contentView.backgroundColor = .secondaryBackground
+        contentView.layer.cornerRadius = 25
         
         contentView.addSubviews(
             imageView,
             newsTitleLabel,
             descriptionLabel,
-            deleteButton
+            bookmarkButton
         )
 
-        deleteButton.addTarget(
+        bookmarkButton.addTarget(
             self,
-            action: #selector(didTapDelete),
+            action: #selector(didTapBookmark),
             for: .touchUpInside
         )
         setupConstraints()
@@ -75,31 +74,40 @@ final class NewsCell: UICollectionViewCell {
     func setupConstraints() {
         NSLayoutConstraint.activate([
             
-            deleteButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            deleteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
-            deleteButton.widthAnchor.constraint(equalToConstant: 24),
-            deleteButton.heightAnchor.constraint(equalTo: deleteButton.widthAnchor),
+            bookmarkButton.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8),
+            bookmarkButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
+            bookmarkButton.widthAnchor.constraint(equalToConstant: 24),
+            bookmarkButton.heightAnchor.constraint(equalTo: bookmarkButton.widthAnchor),
             
-            imageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
-            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
+            imageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 15),
+            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
+            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
             imageView.heightAnchor.constraint(equalToConstant: 180),
             
             newsTitleLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8),
             newsTitleLabel.leadingAnchor.constraint(equalTo: imageView.leadingAnchor),
-            newsTitleLabel.trailingAnchor.constraint(equalTo: imageView.trailingAnchor),
+            newsTitleLabel.trailingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: -30),
             
             descriptionLabel.topAnchor.constraint(equalTo: newsTitleLabel.bottomAnchor, constant: 4),
             descriptionLabel.leadingAnchor.constraint(equalTo: newsTitleLabel.leadingAnchor),
             descriptionLabel.trailingAnchor.constraint(equalTo: newsTitleLabel.trailingAnchor),
-            descriptionLabel.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -8)
+            descriptionLabel.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -20)
         ])
     }
     
-    func configure(with news: News, onDelete: @escaping () -> Void) {
+    func configure(
+        with news: News,
+        isBookmarked: Bool,
+        onBookmarkTap: @escaping () -> Void
+    ) {
+        self.onBookmarkTap = onBookmarkTap
         newsTitleLabel.text = news.title
         descriptionLabel.text = news.description
-        self.onDelete = onDelete
+        
+        let name = isBookmarked ? "bookmark.fill" : "bookmark"
+        bookmarkButton.setImage(UIImage(systemName: name), for: .normal)
+        
+        imageView.image = nil
         
         if let urlString = news.urlToImage, let url = URL(string: urlString) {
             URLSession.shared.dataTask(with: url) { data, _, _ in
@@ -114,9 +122,9 @@ final class NewsCell: UICollectionViewCell {
         
     }
     
-    @objc private func didTapDelete() {
-            onDelete?()
-        }
+    @objc private func didTapBookmark() {
+        onBookmarkTap?()
+    }
     
 }
 
