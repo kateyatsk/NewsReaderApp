@@ -23,8 +23,20 @@ final class BookmarksViewController: UIViewController {
             forCellWithReuseIdentifier: NewsCell.reuseIdentifier
         )
         cv.backgroundColor = .primaryBackground
+        cv.showsVerticalScrollIndicator = false
         cv.translatesAutoresizingMaskIntoConstraints = false
         return cv
+    }()
+    
+    private let emptyStateView: UILabel = {
+        let label = UILabel()
+        label.text = "No bookmarks yet"
+        label.textAlignment = .center
+        label.textColor = .secondaryLabel
+        label.font = .systemFont(ofSize: 16, weight: .medium)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isHidden = true
+        return label
     }()
     
     init(viewModel: BookmarksViewModel) {
@@ -44,12 +56,11 @@ final class BookmarksViewController: UIViewController {
     
     
     override func viewDidLoad() {
+        super.viewDidLoad()
         view.backgroundColor = .primaryBackground
-        view.addSubview(collectionView)
+        view.addSubviews(collectionView, emptyStateView)
         setupConstraints()
-        viewModel.loadBookmarks()
         bindViewModel()
-    
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -86,15 +97,28 @@ private extension BookmarksViewController {
             collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            emptyStateView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyStateView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
             
         ])
     }
     
     func bindViewModel() {
         viewModel.bookmarksDidChange = { [weak self] items in
-            self?.articles = items
-            self?.collectionView.reloadData()
+            guard let self = self else { return }
+            self.articles = items
+            self.emptyStateView.isHidden = !items.isEmpty
+            
+            UIView.transition(
+                with: self.collectionView,
+                duration: 0.3,
+                options: [.transitionCrossDissolve],
+                animations: {
+                    self.collectionView.reloadData()
+                }
+            )
         }
         
         viewModel.errorDidOccur = { [weak self] message in
@@ -106,6 +130,43 @@ private extension BookmarksViewController {
             alert.addAction(.init(title: "ОК", style: .default))
             self?.present(alert, animated: true)
             
+        }
+    }
+    
+    private func showDeletionMessage(_ message: String) {
+        let messageLabel = UILabel()
+        messageLabel.text = message
+        messageLabel.textAlignment = .center
+        messageLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        messageLabel.textColor = .secondaryBackground
+        messageLabel.backgroundColor = .primaryText
+        messageLabel.layer.cornerRadius = 10
+        messageLabel.clipsToBounds = true
+        messageLabel.alpha = 0
+        messageLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        messageLabel.layer.borderWidth = 1.0
+        messageLabel.layer.borderColor = UIColor.secondaryBackground.withAlphaComponent(0.6).cgColor
+
+        view.addSubview(messageLabel)
+
+        NSLayoutConstraint.activate([
+            messageLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
+            messageLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
+            messageLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            messageLabel.heightAnchor.constraint(equalToConstant: 40)
+        ])
+
+        UIView.animate(withDuration: 0.3) {
+            messageLabel.alpha = 1
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            UIView.animate(withDuration: 0.3, animations: {
+                messageLabel.alpha = 0
+            }) { _ in
+                messageLabel.removeFromSuperview()
+            }
         }
     }
     
@@ -133,6 +194,7 @@ extension BookmarksViewController: UICollectionViewDataSource, UICollectionViewD
         cell.configure(with: news, isBookmarked: true) { [weak self] in
             guard let self = self else { return }
             self.viewModel.removeBookmark(news)
+            self.showDeletionMessage("Заметка удалена")
         }
         return cell
     }
