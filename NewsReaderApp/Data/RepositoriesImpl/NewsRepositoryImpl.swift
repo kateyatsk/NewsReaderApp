@@ -21,12 +21,7 @@ final class NewsRepositoryImpl: NewsRepository {
         category: String,
         completion: @escaping (Result<[News], any Error>) -> Void
     ) {
-        
-        if let cached = NewsCache.shared.getCashedArticles(for: category) {
-            completion(.success(cached))
-            return
-        }
-        
+       
         apiService.fetchTopHeadlines(category: category) { result in
             switch result {
             case .success(let dtos):
@@ -49,7 +44,6 @@ final class NewsRepositoryImpl: NewsRepository {
                         content: dto.content
                     )
                 }
-                NewsCache.shared.save(news, for: category)
                 completion(.success(news))
                 
             case .failure(let error):

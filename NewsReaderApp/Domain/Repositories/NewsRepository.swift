@@ -8,10 +8,6 @@
 import Foundation
 
 protocol NewsRepository {
-    func fetchTopHeadlines(
-        category: String,
-        completion: @escaping (Result<[News], Error>) -> Void
-    )
     func saveToBookmarks(_ news: News)
     func removeFromBookmarks(_ news: News)
     func getBookmarks() -> [News]
