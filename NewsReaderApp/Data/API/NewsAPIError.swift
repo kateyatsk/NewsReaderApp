@@ -6,6 +6,7 @@
 //
 
 import Foundation
+
 enum NewsAPIError: LocalizedError {
     case invalidBaseURL
     case invalidRequestURL
@@ -22,7 +23,7 @@ enum NewsAPIError: LocalizedError {
         case .httpStatus(let code):
             return "HTTP Error \(code)"
         case .noData:
-            return "No data"
+            return "No response from server. Please try again later."
         case .network(let err):
             return err.localizedDescription
         }

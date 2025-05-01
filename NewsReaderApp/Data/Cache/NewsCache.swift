@@ -13,21 +13,31 @@ final class NewsCache {
     private init() {}
     
     private var storage: [String: (data: [News], timestamp: Date)] = [:]
+    private let queue = DispatchQueue(label: "cache", attributes: .concurrent)
     
     func save(_ articles: [News], for category: String) {
-        storage[category] = (articles, Date())
+        queue.async(flags: .barrier) {
+            self.storage[category] = (articles, Date())
+        }
     }
     
     func getCashedArticles(for category: String) -> [News]? {
-        guard let cached = storage[category] else { return nil }
-        return isCachedValid(cached.timestamp) ? cached.data : nil
+        var result: [News]?
+        queue.sync {
+            if let cached = self.storage[category], isCacheValid(cached.timestamp) {
+                result = cached.data
+            }
+        }
+        return result
     }
     
     func clear() {
-        storage.removeAll()
+        queue.async(flags: .barrier) {
+            self.storage.removeAll()
+        }
     }
     
-    func isCachedValid(_ timestamp: Date, cacheLifetime: TimeInterval = 60 * 5) -> Bool {
+    func isCacheValid(_ timestamp: Date, cacheLifetime: TimeInterval = 60 * 5) -> Bool {
         return Date().timeIntervalSince(timestamp) < cacheLifetime
     }
     
