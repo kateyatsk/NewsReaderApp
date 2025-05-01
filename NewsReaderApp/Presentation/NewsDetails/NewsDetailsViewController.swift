@@ -40,13 +40,9 @@ final class NewsDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .primaryBackground
+        isBookmarked = viewModel.isBookmarked
         setupUI()
         configure()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        isBookmarked = viewModel.isBookmarked
     }
     
     private func setupUI() {
@@ -113,7 +109,8 @@ final class NewsDetailsViewController: UIViewController {
         
         self.imageView.image = UIImage(named: "placeholder")
         if let url = viewModel.imageURL {
-            URLSession.shared.dataTask(with: url) { data, _, _ in
+            URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+                guard let self else { return }
                 DispatchQueue.main.async {
                     if let data = data, let _ = UIImage(data: data) {
                         self.imageView.image = UIImage(data: data)

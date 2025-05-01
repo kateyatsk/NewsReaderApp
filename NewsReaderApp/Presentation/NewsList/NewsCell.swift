@@ -79,6 +79,16 @@ final class NewsCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        
+        imageView.image = UIImage(named: "placeholder")
+        newsTitleLabel.text = nil
+        descriptionLabel.text = nil
+        sourceLabel.text = nil
+        bookmarkButton.setImage(nil, for: .normal)
+        onBookmarkTap = nil
+    }
     
     func setupConstraints() {
         NSLayoutConstraint.activate([
