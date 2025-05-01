@@ -54,7 +54,7 @@ final class NewsListViewModel {
         return bookmarks.contains(where: { $0.url == news.url })
     }
     
-    func toggleBookmark(for news: News) {
+    func toggleBookmark(for news: News)  -> Bool {
         if isBookmarked(news) {
             removeBookmarkUseCase.execute(news)
         } else {
@@ -62,6 +62,7 @@ final class NewsListViewModel {
         }
         bookmarks = getBookmarksUseCase.execute()
         bookmarksDidChange?()
+        return isBookmarked(news)
     }
     
     func reloadBookmarks() {

@@ -208,8 +208,8 @@ extension NewsListViewController: UICollectionViewDataSource, UICollectionViewDe
                 isBookmarked: isBookmarked
             ) {[weak self] in
                 guard let self = self else { return }
-                self.viewModel.toggleBookmark(for: news)
-                cell.setBookmark(!isBookmarked)
+                let newStatus = self.viewModel.toggleBookmark(for: news)
+                cell.setBookmark(newStatus)
             }
                 return cell
             }
