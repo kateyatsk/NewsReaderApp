@@ -47,6 +47,7 @@ final class NewsListViewController: UIViewController {
             NewsCell.self,
             forCellWithReuseIdentifier: NewsCell.reuseIdentifier
         )
+        cv.showsVerticalScrollIndicator = false
         cv.backgroundColor = .primaryBackground
         cv.translatesAutoresizingMaskIntoConstraints = false
         return cv
@@ -97,9 +98,6 @@ final class NewsListViewController: UIViewController {
                 }
             )
         }
-        viewModel.bookmarksDidChange = { [weak self] in
-            self?.collectionView.reloadData()
-        }
         viewModel.errorDidOccur = { [weak self] message in
             let alert = UIAlertController(
                 title: "Ошибка",
@@ -120,7 +118,7 @@ final class NewsListViewController: UIViewController {
             categoryCollection.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
             categoryCollection.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10),
             categoryCollection.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
-            categoryCollection.heightAnchor.constraint(equalToConstant: 50),
+            categoryCollection.heightAnchor.constraint(equalToConstant: 40),
             
             collectionView.topAnchor.constraint(equalTo: categoryCollection.bottomAnchor, constant: 20),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
@@ -211,7 +209,7 @@ extension NewsListViewController: UICollectionViewDataSource, UICollectionViewDe
             ) {[weak self] in
                 guard let self = self else { return }
                 self.viewModel.toggleBookmark(for: news)
-                collectionView.reloadItems(at: [indexPath])
+                cell.setBookmark(!isBookmarked)
             }
                 return cell
             }
