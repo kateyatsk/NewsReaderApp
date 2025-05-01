@@ -15,16 +15,34 @@ protocol FetchTopHeadlinesUseCase {
 }
 
 final class FetchTopHeadlinesUseCaseImpl: FetchTopHeadlinesUseCase {
-    private let repository: NewsRepository
-
-    init(repository: NewsRepository) {
-        self.repository = repository
+    private let remoteRepository: RemoteHeadlinesRepository
+    private let localRepository: LocalHeadlinesRepository
+    
+    init(
+        remoteRepository: RemoteHeadlinesRepository,
+        localRepository: LocalHeadlinesRepository
+    ) {
+        self.remoteRepository = remoteRepository
+        self.localRepository = localRepository
     }
-
+    
     func execute(
         category: String,
         completion: @escaping (Result<[News], Error>) -> Void
     ) {
-        repository.fetchTopHeadlines(category: category, completion: completion)
+        if let cached = localRepository.getCachedHeadlines(for: category) {
+            completion(.success(cached))
+            return
+        }
+        
+        remoteRepository.fetchTopHeadlines(category: category) { [weak self] result in
+            switch result {
+            case .success(let headlines):
+                self?.localRepository.saveHeadlines(headlines, for: category)
+                completion(.success(headlines))
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
     }
 }
