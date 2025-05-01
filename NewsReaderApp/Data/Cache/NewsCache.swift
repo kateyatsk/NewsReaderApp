@@ -15,8 +15,8 @@ final class NewsCache {
     private var storage: [String: (data: [News], timestamp: Date)] = [:]
     
     func save(_ articles: [News], for category: String) {
-            storage[category] = (articles, Date())
-        }
+        storage[category] = (articles, Date())
+    }
     
     func getCashedArticles(for category: String) -> [News]? {
         guard let cached = storage[category] else { return nil }

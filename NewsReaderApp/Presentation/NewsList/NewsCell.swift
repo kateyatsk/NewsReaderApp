@@ -117,9 +117,8 @@ final class NewsCell: UICollectionViewCell {
         newsTitleLabel.text = news.title
         descriptionLabel.text = news.description
         sourceLabel.text = news.source
-        
-        let name = isBookmarked ? "bookmark.fill" : "bookmark"
-        bookmarkButton.setImage(UIImage(systemName: name), for: .normal)
+
+        setBookmark(isBookmarked)
         
         imageView.image = UIImage(named: "placeholder")
         if let urlString = news.urlToImage, let url = URL(string: urlString) {
@@ -135,6 +134,15 @@ final class NewsCell: UICollectionViewCell {
             
         }
     }
+    
+    func setBookmark(_ isBookmarked: Bool) {
+        bookmarkButton.setImage(
+            UIImage(systemName: isBookmarked ? "bookmark.fill" : "bookmark"),
+            for: .normal
+        )
+    }
+    
+    
     @objc private func didTapBookmark() {
         onBookmarkTap?()
     }
