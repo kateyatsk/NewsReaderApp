@@ -33,7 +33,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             fetchUseCase: fetchHeadlinesUC,
             getBookmarksUseCase: getBookmarksUC,
             removeBookmarkUseCase: removeBookmarkUC,
-            saveBookmarkUseCase: saveBookmarkUC,
+            saveBookmarkUseCase: saveBookmarkUC
         )
         let newsListVC = NewsListViewController(viewModel: newsListVM)
         let newsNav = UINavigationController(rootViewController: newsListVC)
