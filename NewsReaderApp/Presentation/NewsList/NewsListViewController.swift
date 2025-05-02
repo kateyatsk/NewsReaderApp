@@ -14,6 +14,7 @@ final class NewsListViewController: UIViewController {
     private var articles: [News] = []
     
     private let viewModel: NewsListViewModel
+    private var hasLoadedOnce = false
     
     private let titleLabel: UILabel = {
         let lbl = UILabel()
@@ -88,15 +89,24 @@ final class NewsListViewController: UIViewController {
         )
         setupConstraints()
         bindViewModel()
-        viewModel.load(category: categories[selectedIndex].rawValue)
         
     }
+    
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         viewModel.reloadBookmarks()
         collectionView.reloadData()
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+           super.viewDidAppear(animated)
+
+           if !hasLoadedOnce {
+               hasLoadedOnce = true
+               viewModel.load(category: categories[selectedIndex].rawValue)
+           }
+       }
     
     private func bindViewModel() {
         viewModel.articlesDidChange = { [weak self] news in
@@ -123,13 +133,18 @@ final class NewsListViewController: UIViewController {
         }
         
         viewModel.errorDidOccur = { [weak self] message in
-            let alert = UIAlertController(
-                title: "Ошибка",
-                message: message,
-                preferredStyle: .alert
-            )
-            alert.addAction(.init(title: "ОК", style: .default))
-            self?.present(alert, animated: true)
+            DispatchQueue.main.async {
+                self?.loadingIndicator.stopAnimating()
+                self?.collectionView.isHidden = false
+                
+                let alert = UIAlertController(
+                    title: "Ошибка",
+                    message: message,
+                    preferredStyle: .alert
+                )
+                alert.addAction(.init(title: "ОК", style: .default))
+                self?.present(alert, animated: true)
+            }
         }
     }
     
