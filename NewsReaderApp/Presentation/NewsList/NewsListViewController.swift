@@ -54,6 +54,13 @@ final class NewsListViewController: UIViewController {
         return cv
     }()
     
+    private let loadingIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .large)
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        indicator.hidesWhenStopped = true
+        return indicator
+    }()
+    
     
     init(viewModel: NewsListViewModel) {
         self.viewModel = viewModel
@@ -73,11 +80,16 @@ final class NewsListViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.addSubviews(titleLabel, categoryCollection, collectionView)
+        view.addSubviews(
+            titleLabel,
+            categoryCollection,
+            collectionView,
+            loadingIndicator
+        )
         setupConstraints()
         bindViewModel()
         viewModel.load(category: categories[selectedIndex].rawValue)
-
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -99,6 +111,17 @@ final class NewsListViewController: UIViewController {
                 }
             )
         }
+        viewModel.isLoadingChange = { [weak self] isLoading in
+            DispatchQueue.main.async {
+                self?.collectionView.isHidden = isLoading
+                if isLoading {
+                    self?.loadingIndicator.startAnimating()
+                } else {
+                    self?.loadingIndicator.stopAnimating()
+                }
+            }
+        }
+        
         viewModel.errorDidOccur = { [weak self] message in
             let alert = UIAlertController(
                 title: "Ошибка",
@@ -120,6 +143,9 @@ final class NewsListViewController: UIViewController {
             categoryCollection.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10),
             categoryCollection.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
             categoryCollection.heightAnchor.constraint(equalToConstant: 40),
+            
+            loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             
             collectionView.topAnchor.constraint(equalTo: categoryCollection.bottomAnchor, constant: 20),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
@@ -169,7 +195,7 @@ final class NewsListViewController: UIViewController {
         section.interGroupSpacing = 15
         return UICollectionViewCompositionalLayout(section: section)
     }
-   
+    
 }
 
 extension NewsListViewController: UICollectionViewDataSource, UICollectionViewDelegate  {
@@ -212,29 +238,32 @@ extension NewsListViewController: UICollectionViewDataSource, UICollectionViewDe
                 let newStatus = self.viewModel.toggleBookmark(for: news)
                 cell.setBookmark(newStatus)
             }
-                return cell
-            }
+            return cell
         }
-        
-        func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-            if collectionView == categoryCollection {
-                selectedIndex = indexPath.item
-                categoryCollection.reloadData()
-                let category = categories[selectedIndex].rawValue
-                viewModel.load(category: category)
-            } else {
-                let selectedNews = articles[indexPath.item]
-                let detailVM = NewsDetailsViewModel(
-                    news: selectedNews,
-                    getBookmarksUseCase: viewModel.getBookmarksUseCase,
-                    removeUseCase: viewModel.removeBookmarkUseCase,
-                    saveUseCase: viewModel.saveBookmarkUseCase
-                )
-                let detailVC = NewsDetailsViewController(viewModel: detailVM)
-                navigationController?.pushViewController(detailVC, animated: true)
-            }
-            
+    }
+    
+    func collectionView(
+        _ collectionView: UICollectionView,
+        didSelectItemAt indexPath: IndexPath
+    ) {
+        if collectionView == categoryCollection {
+            selectedIndex = indexPath.item
+            categoryCollection.reloadData()
+            let category = categories[selectedIndex].rawValue
+            viewModel.load(category: category)
+        } else {
+            let selectedNews = articles[indexPath.item]
+            let detailVM = NewsDetailsViewModel(
+                news: selectedNews,
+                getBookmarksUseCase: viewModel.getBookmarksUseCase,
+                removeUseCase: viewModel.removeBookmarkUseCase,
+                saveUseCase: viewModel.saveBookmarkUseCase
+            )
+            let detailVC = NewsDetailsViewController(viewModel: detailVM)
+            navigationController?.pushViewController(detailVC, animated: true)
         }
         
     }
     
+}
+
