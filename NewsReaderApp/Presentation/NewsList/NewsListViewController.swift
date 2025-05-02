@@ -34,6 +34,7 @@ final class NewsListViewController: UIViewController {
             forCellWithReuseIdentifier: CategoryCell.reuseIdentifier
         )
         cv.backgroundColor = .primaryBackground
+        cv.alwaysBounceVertical = false
         cv.translatesAutoresizingMaskIntoConstraints = false
         return cv
     }()
