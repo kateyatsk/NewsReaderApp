@@ -40,9 +40,13 @@ final class NewsDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .primaryBackground
-        isBookmarked = viewModel.isBookmarked
         setupUI()
         configure()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        isBookmarked = viewModel.isBookmarked
     }
     
     private func setupUI() {
